@@ -1,0 +1,50 @@
+{
+  "apptxns" : [
+    {
+      "apptxn/id" : "TXN1-3BB05024-B7F6-4B66-838B-F6982FCB08DF",
+      "apptxn/usecase" : 1,
+      "apptxn/user-agent-device-os-version" : "8.1",
+      "apptxn/logs" : [
+        {
+          "apptxnlog/usecase-event" : 1,
+          "apptxnlog/timestamp" : "Thu, 15 Jan 2015 13:11:42 EST",
+          "apptxnlog/in-ctx-err-code" : null
+        },
+        {
+          "apptxnlog/usecase-event" : 2,
+          "apptxnlog/timestamp" : "Fri, 16 Jan 2015 13:11:42 EST",
+          "apptxnlog/in-ctx-err-code" : 42,
+          "apptxnlog/in-ctx-err-desc" : "Baad!",
+          "apptxnlog/edn-ctx" : "{:request {}}"
+        }
+      ],
+      "apptxn/user-agent-device-os" : "iPhone OS",
+      "apptxn/user-agent-device-make" : "x86_64"
+    },
+    {
+      "apptxn/id" : "TXN6-C1F56AD9-0685-4D55-88A9-509B94B9FB1A",
+      "apptxn/usecase" : 6,
+      "apptxn/user-agent-device-os-version" : "8.0.4",
+      "apptxn/logs" : [
+        {
+          "apptxnlog/usecase-event" : 0,
+          "apptxnlog/timestamp" : "Wed, 14 Jan 2015 13:11:42 EST",
+          "apptxnlog/in-ctx-err-code" : null
+        },
+        {
+          "apptxnlog/usecase-event" : 1,
+          "apptxnlog/timestamp" : "Tue, 13 Jan 2015 13:11:42 EST",
+          "apptxnlog/in-ctx-err-code" : 99,
+          "apptxnlog/in-ctx-err-desc" : "Mmmkay"
+        },
+        {
+          "apptxnlog/usecase-event" : 3,
+          "apptxnlog/timestamp" : "Mon, 12 Jan 2015 13:11:42 EST",
+          "apptxnlog/in-ctx-err-code" : null
+        }
+      ],
+      "apptxn/user-agent-device-os" : "iPhone OS",
+      "apptxn/user-agent-device-make" : "x86_64"
+    }
+  ]
+}

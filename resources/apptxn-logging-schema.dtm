@@ -1,0 +1,88 @@
+[
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;; Application transaction attributes
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxn/id
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/identity
+  :db/doc "An application-generated identifier for the transaction."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxn/usecase
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "The use case associated with the transaction."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxn/user-agent-device-make
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "The make of the user agent device associated with the transaction."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxn/user-agent-device-os
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "The operating system of the user agent device associated with the transaction."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxn/user-agent-device-os-version
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "The operating system version of the user agent device associated with the transaction."
+  :db.install/_attribute :db.part/db}
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;; Application transaction log attributes
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/txn
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc "The parent transaction associated with this transaction log."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/usecase-event
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "The event type associated with the transaction log."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/timestamp
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc "The timestamp associated with the transaction log."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/in-ctx-err-code
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "The error code associated with the transaction log."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/in-ctx-err-desc
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "The error description associated with the transaction log."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :apptxnlog/edn-ctx
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "The edn-based context of this log serialized as a string."
+  :db.install/_attribute :db.part/db}
+]
