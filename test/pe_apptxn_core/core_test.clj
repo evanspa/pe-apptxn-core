@@ -19,10 +19,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fixtures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-fixtures :each (tucore/make-db-refresher db-uri
-                                              conn
-                                              apptxn-partition
-                                              apptxn-schema-filename))
+(use-fixtures :each (tucore/make-db-refresher-fixture-fn db-uri
+                                                         conn
+                                                         apptxn-partition
+                                                         apptxn-schema-filename))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tests
