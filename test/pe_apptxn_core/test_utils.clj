@@ -1,6 +1,6 @@
 (ns pe-apptxn-core.test-utils)
 
-(def apptxn-schema-filename "apptxn-logging-schema.dtm")
+(def apptxn-schema-files ["apptxn-logging-schema-updates-0.0.1.dtm"])
 
 (def db-uri "datomic:mem://apptxns")
 

@@ -3,7 +3,7 @@
             [clojure.pprint :refer [pprint]]
             [pe-core-utils.core :as ucore]
             [pe-core-testutils.core :as tucore]
-            [pe-apptxn-core.test-utils :refer [apptxn-schema-filename
+            [pe-apptxn-core.test-utils :refer [apptxn-schema-files
                                                db-uri
                                                apptxn-partition]]
             [pe-apptxn-core.core :refer :all]
@@ -22,7 +22,7 @@
 (use-fixtures :each (tucore/make-db-refresher-fixture-fn db-uri
                                                          conn
                                                          apptxn-partition
-                                                         apptxn-schema-filename))
+                                                         apptxn-schema-files))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tests
