@@ -1,22 +1,16 @@
 (ns pe-apptxn-core.core
+  "The set of functions encapsulating the data model and data access functions
+  of the PEAppTransaction Logging Framework."
   (:require [datomic.api :refer [q db] :as d]
             [clj-time.core :as t]
+            [pe-core-utils.core :as ucore]
             [clojure.tools.logging :as log]))
 
 (declare apptxnlogs-for-apptxnid)
 (declare save-apptxnlog-txn)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Private vars (helper functions, config, etc)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn remove-nils
-  [m]
-  (into {} (filter (comp not nil? val) m)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Public API
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn all-apptxns
+  "Returns the set of application transactions found in the database."
   [conn]
   (let [apptxns-rel (q '[:find (pull ?apptxn [*]) :where [?apptxn :apptxn/id]] (db conn))
         apptxns (first apptxns-rel)]
@@ -33,6 +27,7 @@
      apptxns-rel)))
 
 (defn find-apptxn-by-id
+  "Returns the application transaction instance with the given id."
   [conn apptxn-id]
   (ffirst (q '[:find ?apptxn
                :in $ ?apptxn-id
@@ -41,6 +36,8 @@
              apptxn-id)))
 
 (defn save-apptxnset-txnmaps
+  "Saves (transacts) the given apptxnset for the given user entity ID, to
+  partition."
   [conn partition user-entid apptxnset]
   (let [apptxns (:apptxns apptxnset)]
     (vec (reduce (fn [overalltxn apptxn]
@@ -74,7 +71,7 @@
                                                   (:apptxnlog/txn (second txn)))
                                    rest-apptxnlogs (rest apptxnlogs)]
                              (reduce (fn [txn apptxnlog]
-                                       (conj txn (merge (remove-nils apptxnlog)
+                                       (conj txn (merge (ucore/remove-nils apptxnlog)
                                                         {:db/id (d/tempid partition)
                                                          :apptxnlog/txn apptxn-entid})))
                                      txn
@@ -83,6 +80,15 @@
                  apptxns))))
 
 (defn save-apptxn-txnmap
+  "Returns a application transaction map for the given partition, suitable for
+  inclusion in a Datomic transaction.  The parameters are as follows:
+  apptxn-usecase - The use case to be associated with the application
+  transaction.
+  apptxn-user-agent-device-make - The originating user-agent device make name.
+  apptxn-user-agent-device-os - The originating user-agent device operating
+  system name.
+  apptxn-user-agent-device-os-version - The originating user-agent device
+  operation system version."
   [partition
    apptxn-id
    apptxn-usecase
@@ -175,6 +181,8 @@
                          {:apptxnlog/txn newapptxn-entid})]))))))
 
 (defn apptxnlogs-for-apptxnid
+  "Returns the set of application transaction logs for the given application
+  transaction entity ID."
   [conn apptxn-id]
   (q '[:find ?apptxnlog
        :in $ ?apptxn-id

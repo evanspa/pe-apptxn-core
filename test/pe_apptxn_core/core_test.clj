@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [clojure.pprint :refer [pprint]]
             [pe-core-utils.core :as ucore]
-            [pe-core-testutils.core :as tucore]
+            [pe-datomic-testutils.core :as dtucore]
             [pe-apptxn-core.test-utils :refer [apptxn-schema-files
                                                db-uri
                                                apptxn-partition]]
@@ -19,10 +19,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fixtures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-fixtures :each (tucore/make-db-refresher-fixture-fn db-uri
-                                                         conn
-                                                         apptxn-partition
-                                                         apptxn-schema-files))
+(use-fixtures :each (dtucore/make-db-refresher-fixture-fn db-uri
+                                                          conn
+                                                          apptxn-partition
+                                                          apptxn-schema-files))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tests
