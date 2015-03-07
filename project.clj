@@ -1,4 +1,4 @@
-(defproject pe-apptxn-core "0.0.1-SNAPSHOT"
+(defproject pe-apptxn-core "0.0.1"
   :description "A Clojure library encapsulating the data model and data access functions of the PEAppTransaction Logging Framework."
   :url "https://github.com/evanspa/pe-apptxn-core"
   :license {:name "MIT"
