@@ -3,7 +3,9 @@
 [![Build Status](https://travis-ci.org/evanspa/pe-apptxn-core.svg)](https://travis-ci.org/evanspa/pe-apptxn-core)
 
 A Clojure library encapsulating the server-side data model and data access functions of the
-PEAppTransaction Logging Framework.  [Datomic](http://www.datomic.com) is used as the underlying data store.  [pe-apptxn-restsupport](https://github.com/evanspa/pe-apptxn-restsupport) exists to provide a REST API on top of the functionality provided by pe-apptxn-core.
+PEAppTransaction Logging Framework.  [Datomic](http://www.datomic.com) is used as the underlying data store.  
+
+If you're looking for a REST interface, [pe-apptxn-restsupport](https://github.com/evanspa/pe-apptxn-restsupport) exists to provide a REST API on top of the functionality provided by pe-apptxn-core.
 
 pe-apptxn-core is part of the
 [pe-* Clojure Library Suite](#pe--clojure-library-suite).
