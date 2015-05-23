@@ -1,9 +1,19 @@
 (ns pe-apptxn-core.test-utils)
 
-(def apptxn-schema-files ["apptxn-logging-schema-updates-0.0.1.dtm"])
+(def db-name "test_db")
 
-(def db-uri "datomic:mem://apptxns")
+(defn db-spec-fn
+  ([]
+   (db-spec-fn nil))
+  ([db-name]
+   (let [subname-prefix "//localhost:5432/"]
+     {:classname "org.postgresql.Driver"
+      :subprotocol "postgresql"
+      :subname (if db-name
+                 (str subname-prefix db-name)
+                 subname-prefix)
+      :user "postgres"})))
 
-(def apptxn-partition
-  "The name of the Datomic partition of the application transactions."
-  :apptxn)
+(def db-spec-without-db (db-spec-fn nil))
+
+(def db-spec (db-spec-fn db-name))

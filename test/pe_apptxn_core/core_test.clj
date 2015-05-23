@@ -2,32 +2,135 @@
   (:require [clojure.test :refer :all]
             [clojure.pprint :refer [pprint]]
             [pe-core-utils.core :as ucore]
-            [pe-datomic-testutils.core :as dtucore]
-            [pe-apptxn-core.test-utils :refer [apptxn-schema-files
-                                               db-uri
-                                               apptxn-partition]]
-            [pe-apptxn-core.core :refer :all]
+            [pe-user-core.core :as usercore]
+            [pe-apptxn-core.test-utils :refer [db-spec-without-db
+                                               db-spec
+                                               db-name]]
+            [clojure.java.jdbc :as j]
+            [pe-jdbc-utils.core :as jcore]
+            [pe-apptxn-core.core :as core]
             [clojure.java.io :refer [resource]]
-            [datomic.api :as d]
             [clojure.walk :refer [keywordize-keys]]
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
-            [clj-time.core :as t]))
-
-(def conn (atom nil))
+            [pe-user-core.ddl :as uddl]
+            [pe-apptxn-core.ddl :as ddl]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fixtures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-fixtures :each (dtucore/make-db-refresher-fixture-fn db-uri
-                                                          conn
-                                                          apptxn-partition
-                                                          apptxn-schema-files))
+(use-fixtures :each (fn [f]
+                      (jcore/drop-database db-spec-without-db db-name)
+                      (jcore/create-database db-spec-without-db db-name)
+                      (j/db-do-commands db-spec
+                                        true
+                                        uddl/schema-version-ddl
+                                        uddl/v0-create-user-account-ddl
+                                        uddl/v0-add-unique-constraint-user-account-email
+                                        uddl/v0-add-unique-constraint-user-account-username
+                                        uddl/v0-create-authentication-token-ddl
+                                        uddl/v0-add-column-user-account-updated-w-auth-token
+                                        ddl/v0-create-apptxn-usecase-ddl
+                                        ddl/v0-create-apptxn-usecase-log-ddl)
+                      (jcore/with-try-catch-exec-as-query db-spec
+                        (uddl/v0-create-updated-count-inc-trigger-function-fn db-spec))
+                      (jcore/with-try-catch-exec-as-query db-spec
+                        (uddl/v0-create-user-account-updated-count-trigger-fn db-spec))
+                      (f)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tests
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(deftest Loading-and-Saving-Transactions
+(deftest Saving-Individual-Transaction-Use-Cases-and-Logs
+  (testing "Simplest Case - single use case and logs sequentially"
+    (j/with-db-transaction [conn db-spec]
+      (let [new-user-id (usercore/next-user-account-id conn)
+            new-apptxn-uc-id (core/next-apptxn-usecase-id conn)
+            new-apptxn-uc-log-id-1 (core/next-apptxn-usecase-log-id conn)
+            new-apptxn-uc-log-id-2 (core/next-apptxn-usecase-log-id conn)
+            t1 (t/now)
+            new-token-id (usercore/next-auth-token-id conn)
+            trace-id (str (java.util.UUID/randomUUID))
+            uc-code 17
+            t2 (t/now)
+            t3 (t/now)]
+        (usercore/save-new-user conn
+                                new-user-id
+                                {:user/username "smithj"
+                                 :user/email "smithj@test.com"
+                                 :user/name "John Smith"
+                                 :user/created-at t1
+                                 :user/password "insecure"})
+        (usercore/create-and-save-auth-token conn new-user-id new-token-id)
+        (core/save-new-apptxn-usecase conn
+                                      new-user-id
+                                      new-apptxn-uc-id
+                                      {:apptxn/trace-id trace-id
+                                       :apptxn/usecase uc-code})
+        (let [apptxn-rs (j/query conn
+                                 [(format "select * from %s where id = ?"
+                                          ddl/tbl-apptxn-usecase)
+                                  new-apptxn-uc-id]
+                                 :result-set-fn first)]
+          (is (not (nil? apptxn-rs)))
+          (is (= new-apptxn-uc-id (:id apptxn-rs)))
+          (is (= new-user-id (:user_id apptxn-rs)))
+          (is (= trace-id (:trace_id apptxn-rs)))
+          (is (= uc-code (:uc_code apptxn-rs))))
+        (core/save-new-apptxn-usecase-log conn
+                                          new-user-id
+                                          new-token-id
+                                          new-apptxn-uc-id
+                                          new-apptxn-uc-log-id-1
+                                          {:apptxnlog/logged-at t2
+                                           :apptxnlog/event-type 32
+                                           :apptxnlog/in-ctx-err-desc "some err"
+                                           :apptxnlog/in-ctx-err-code 4})
+        (let [apptxn-log-rs (j/query conn
+                                     [(format "select * from %s where id = ?"
+                                              ddl/tbl-apptxn-usecase-log)
+                                      new-apptxn-uc-log-id-1]
+                                     :result-set-fn first)]
+          (is (not (nil? apptxn-log-rs)))
+          (is (= new-user-id (:user_id apptxn-log-rs)))
+          (is (= new-token-id (:auth_token_id apptxn-log-rs)))
+          (is (= new-apptxn-uc-log-id-1 (:id apptxn-log-rs)))
+          (is (= new-apptxn-uc-id (:uc_id apptxn-log-rs)))
+          (is (= t2 (c/from-sql-date (:logged_at apptxn-log-rs))))
+          (is (= 32 (:event_type apptxn-log-rs)))
+          (is (= 4 (:in_ctx_err_code apptxn-log-rs)))
+          (is (= "some err" (:in_ctx_err_desc apptxn-log-rs)))
+          (is (nil? ())))
+        (core/save-new-apptxn-usecase-log conn
+                                          new-user-id
+                                          new-apptxn-uc-id
+                                          new-apptxn-uc-log-id-2
+                                          {:apptxnlog/logged-at t3
+                                           :apptxnlog/event-type 33
+                                           :apptxnlog/ua-device-manu "Samsung"
+                                           :apptxnlog/ua-device-model "Galaxy S5"
+                                           :apptxnlog/ua-device-os usercore/uados-cyanogenmod
+                                           :apptxnlog/ua-device-os-ver "1.2.5"
+                                           :apptxnlog/browser-ua "Gecko/Mozilla"})
+        (let [apptxn-log-rs (j/query conn
+                                     [(format "select * from %s where id = ?"
+                                              ddl/tbl-apptxn-usecase-log)
+                                      new-apptxn-uc-log-id-2]
+                                     :result-set-fn first)]
+          (is (not (nil? apptxn-log-rs)))
+          (is (= new-user-id (:user_id apptxn-log-rs)))
+          (is (nil? (:auth_token_id apptxn-log-rs)))
+          (is (= new-apptxn-uc-log-id-2 (:id apptxn-log-rs)))
+          (is (= new-apptxn-uc-id (:uc_id apptxn-log-rs)))
+          (is (= t3 (c/from-sql-date (:logged_at apptxn-log-rs))))
+          (is (= 33 (:event_type apptxn-log-rs)))
+          (is (nil? (:in_ctx_err_code apptxn-log-rs)))
+          (is (nil? (:in_ctx_err_desc apptxn-log-rs))))))))
+
+
+#_(deftest Loading-and-Saving-Transactions
   (testing "Save a new app transaction set."
     (let [apptxnset (keywordize-keys
                      (-> (json/read-str (slurp (resource "apptxnset.json")))
