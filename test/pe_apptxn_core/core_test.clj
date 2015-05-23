@@ -101,8 +101,7 @@
           (is (= t2 (c/from-sql-date (:logged_at apptxn-log-rs))))
           (is (= 32 (:event_type apptxn-log-rs)))
           (is (= 4 (:in_ctx_err_code apptxn-log-rs)))
-          (is (= "some err" (:in_ctx_err_desc apptxn-log-rs)))
-          (is (nil? ())))
+          (is (= "some err" (:in_ctx_err_desc apptxn-log-rs))))
         (core/save-new-apptxn-usecase-log conn
                                           new-user-id
                                           new-apptxn-uc-id
